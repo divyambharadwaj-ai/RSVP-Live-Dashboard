@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RSVP Scoreboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#061744;--panel:rgba(20,60,160,.35);--line:rgba(120,160,255,.28);--gold:#F5B83D;--pink:#FF5C93;--green:#44E0A0;--text:#EAF1FF;--mute:#9FB4E8;
+--disp:'Barlow Condensed','Arial Narrow',Impact,sans-serif;--body:'Barlow','Segoe UI',Arial,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:500 clamp(11px,.95vw,22px)/1.25 var(--body);color:var(--text);background:radial-gradient(120% 90% at 20% 0%,#10388f 0%,var(--navy) 60%,#030c28 100%);overflow:hidden}
+.wrap{height:100vh;display:grid;grid-template-rows:auto auto auto auto 1fr;gap:.7em;padding:1.1em 1.4em}
+.top{display:flex;align-items:center;gap:1.4em}
+.brand{font:800 2.4em/1 var(--disp);letter-spacing:.08em;color:#fff}
+.brand small{display:block;font:600 .38em/1.3 var(--body);letter-spacing:.3em;color:var(--mute)}
+.title{font:700 1em var(--disp);color:var(--mute);letter-spacing:.12em}
+.title b{display:block;font:800 2em/1 var(--disp);color:#fff;letter-spacing:.04em}
+.total{display:flex;align-items:center;justify-content:center;gap:1em;border:1px solid var(--gold);border-radius:1.2em;padding:.5em 1.2em;background:rgba(245,184,61,.08)}
+.total .lab{font:700 1.05em var(--disp);letter-spacing:.1em;color:var(--gold)}
+.total .num{font:800 3.2em/1 var(--disp);color:var(--gold)}
+.total .sub{font-size:.8em;color:var(--mute)}
+.clock{text-align:right;font-size:.85em;color:var(--mute)}
+.clock b{display:block;font:700 1.9em/1 var(--disp);color:#fff}
+.kpis{display:grid;grid-template-columns:1.1fr 1fr 1.5fr 1fr;gap:.9em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:1em;padding:.8em 1em;min-width:0}
+.card h3{font:700 .85em var(--disp);letter-spacing:.14em;color:var(--mute);margin-bottom:.35em}
+.big{font:800 3em/1 var(--disp)}
+.nm{font:800 1.9em/1.05 var(--disp);color:var(--gold)}
+.note{font-size:.82em;color:var(--mute);margin-top:.25em}
+.bar{height:.5em;border-radius:1em;background:rgba(255,255,255,.12);overflow:hidden;margin-top:.5em}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:1em}
+.push .nm{color:var(--pink)}
+.names{columns:3;font-size:.72em;color:#cfdcff;margin-top:.3em;line-height:1.35}
+.main{display:grid;grid-template-columns:2.35fr 1fr;gap:.9em;min-height:0}
+.lb{display:flex;flex-direction:column;min-height:0}
+.lb h2,.tl h2{font:800 1.5em var(--disp);letter-spacing:.06em;margin-bottom:.4em;display:flex;justify-content:space-between;align-items:baseline}
+.lb h2 span,.tl h2 span{font:500 .5em var(--body);color:var(--mute);letter-spacing:0}
+.rows{flex:1;display:grid;grid-auto-flow:column;column-gap:1.6em;min-height:0}
+.r{display:grid;grid-template-columns:2.2em 1fr 6.5em 4.8em 2em;align-items:center;gap:.6em;border-bottom:1px solid rgba(120,160,255,.14);min-height:0;padding:0 .2em}
+.r .k{font:700 1.1em var(--disp);color:var(--mute);text-align:right}
+.r .n{font:700 1.15em var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .n small{display:block;font:500 .6em var(--body);color:var(--mute)}
+.r .b{height:.4em;border-radius:1em;background:rgba(255,255,255,.12);overflow:hidden}
+.r .b i{display:block;height:100%;background:var(--gold)}
+.r .t{font-size:.8em;color:var(--mute);text-align:right}
+.r .t.up{color:var(--green);font-weight:600}
+.r .v{font:800 1.5em var(--disp);text-align:right}
+.r.gold .k,.r.gold .v{color:var(--gold)}
+.tl{display:flex;flex-direction:column;min-height:0}
+.tls{flex:1;display:flex;flex-direction:column;gap:.7em;overflow:hidden}
+.t1{padding-bottom:.6em;border-bottom:1px solid rgba(120,160,255,.14)}
+.t1 .h{display:flex;justify-content:space-between;align-items:baseline}
+.t1 .h b{font:800 1.5em var(--disp);color:var(--gold)}
+.t1 .h em{font:800 1.4em var(--disp);font-style:normal}
+.t1 .s{font-size:.8em;color:var(--mute);display:flex;justify-content:space-between}
+.warn{position:fixed;left:50%;bottom:.8em;transform:translateX(-50%);background:var(--pink);color:#fff;padding:.4em 1em;border-radius:1em;font-size:.9em;display:none}
+.pos{color:var(--green)}.neg{color:var(--pink)}
+@media (max-width:900px){body{overflow:auto}.wrap{height:auto}.top{flex-wrap:wrap}.kpis,.main{grid-template-columns:1fr}.rows{display:block}.r{padding:.5em 0}}
+.title{margin-right:auto}
+.sep{width:1px;align-self:stretch;background:var(--gold);opacity:.5}
+.toprm{font:800 2em/1 var(--disp);color:#fff}
+.status{display:flex;gap:1.6em;align-items:center;font-size:.85em;color:var(--mute)}
+.status b{color:#fff;font-weight:600}
+.dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--green);margin-right:.5em}
+button,select{font:600 .9em var(--body);border-radius:.6em;padding:.55em 1em;border:1px solid var(--line);background:rgba(20,60,160,.45);color:#fff}
+button{background:var(--gold);color:#1a1200;border-color:var(--gold);cursor:pointer}
+button.ghost{background:rgba(20,60,160,.45);color:#fff;border-color:var(--line)}
+.foot{font-size:.7em;color:var(--mute);margin-top:.5em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">DHAROHAR<small>LAND CORPORATION</small></div>
+    <div class="title">CALL-A-THON<b>RSVP SCOREBOARD</b></div>
+    <div class="clock"><b id="clock"></b></div>
+    <select id="day" title="Show a past day"></select>
+    <button id="rf">Refresh now</button>
+    <button id="fs" class="ghost">Full screen</button>
+  </div>
+  <div class="total"><span class="lab">TOTAL RSVP GENERATED TILL NOW</span><span class="num" id="total">0</span><span class="sub" id="since"></span><span class="sep"></span><span class="lab">TOP RM TILL NOW</span><span class="toprm" id="toprm"></span><span class="sub" id="toprmsub"></span></div>
+  <div class="status" id="stat"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="main">
+    <div class="card lb"><h2>RM LEADERBOARD<span id="lbn"></span></h2><div class="rows" id="rows"></div></div>
+    <div class="card tl"><h2>TL STANDINGS<span>% of team target today</span></h2><div class="tls" id="tls"></div><div class="foot">Team target = number of RMs x daily target. If an RM falls short, the TL fills the gap.</div></div>
+  </div>
+</div>
+<div class="warn" id="warn"></div>
+<script>
+/* ===== SETTINGS: change these ===== */
+const CONFIG = {
+  SHEET_URL: "https://docs.google.com/spreadsheets/d/1aO8Gxk1NoKxKH3uze-O9w853KYjiTwnntcJdAf4zLgw/edit?gid=0#gid=0", // paste your normal Google Sheet link here (share it as "Anyone with the link: Viewer"). Empty = demo data.
+  SHEET_TAB: "",          // tab name in your Google Sheet (empty = the tab in the link, or the first tab)
+  REFRESH_MIN: 30,        // auto refresh interval in minutes
+  TARGET_PER_RM: 10,      // daily RSVP target per RM
+  START_DATE: "",         // campaign start, e.g. "2026-10-26" (empty = earliest date in data)
+  // Header names in your sheet. Several names can be listed; the first one found is used.
+  // If there is no RSVP column, every row counts as 1 RSVP.
+  COLUMNS: {date:["Followed Date"], rm:["RM"], tl:["Team Leader","Team Leder","TL"], rsvp:["RSVP"]},
+  FILTER: {column:"Stage", values:["Meeting Scheduled"]}, // count only rows where this column matches. Use null to count every row.
+  CLEAN_NAMES: true,      // removes Mr./Mrs. and fixes capitalisation (e.g. "Mr. Chander Dhawan" -> "Chander Dhawan")
+  SNAPSHOT: `S.No,Followed Date,Team Leder,RM,Stage
+1,27 Oct 2026,Mr. Parivesh Kumar,Bharat kumar,Meeting Scheduled
+2,26 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled
+3,26 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled
+4,26 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled
+5,26 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled
+6,26 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled
+7,26 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled
+8,27 Oct 2026,Mr. Dheeraj Sharma,Vaibhav Sharma,Meeting Scheduled
+9,27 Oct 2026,Mr. Dheeraj Sharma,Vaibhav Sharma,Meeting Scheduled
+10,25 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled
+12,27 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled
+,28 Oct 2026,Mr. Chander Dhawan,Vaibhav Sharma,Meeting Scheduled`, // saved copy of the sheet (28 Oct). Shown ONLY if the live sheet cannot be reached. Set to "" to turn off.
+  ROSTER: []              // optional: [{rm:"Name", tl:"Team Leader"}] so RMs with 0 RSVPs still show
+};
+// Optional: set these in the page link instead of editing the file, e.g.  index.html?sheet=<link>&tab=Noida%20RSVP&target=10&start=2026-10-26
+(()=>{const q=new URLSearchParams(location.search);
+ if(q.get('sheet'))CONFIG.SHEET_URL=q.get('sheet');if(q.get('tab'))CONFIG.SHEET_TAB=q.get('tab');
+ if(q.get('target'))CONFIG.TARGET_PER_RM=+q.get('target');if(q.get('start'))CONFIG.START_DATE=q.get('start');
+ if(q.get('refresh'))CONFIG.REFRESH_MIN=+q.get('refresh')})();
+function csvUrl(){const src=CONFIG.SHEET_URL.trim();if(!src)return '';
+ if(/output=csv/.test(src))return src;
+ const m=src.match(/\/spreadsheets\/d\/([\w-]+)/);if(!m)return src;
+ const g=src.match(/[#&?]gid=(\d+)/);
+ return 'https://docs.google.com/spreadsheets/d/'+m[1]+'/gviz/tq?tqx=out:csv'+(CONFIG.SHEET_TAB?'&sheet='+encodeURIComponent(CONFIG.SHEET_TAB):g?'&gid='+g[1]:'')}
+/* ================================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+let diag=null,rows=[],lastOk=null,left=CONFIG.REFRESH_MIN*60,viewDay=null;
+
+function parseCSV(t){const o=[];let r=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];
+ if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+ else if(ch==='"')q=true;else if(ch===','){r.push(c);c=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c);c='';if(r.some(x=>x!==''))o.push(r);r=[]}else c+=ch}
+ if(c!==''||r.length){r.push(c);o.push(r)}return o}
+function normDate(v){v=String(v).trim();let m;
+ if(m=v.match(/^Date\((\d+),(\d+),(\d+)/))return m[1]+'-'+String(+m[2]+1).padStart(2,'0')+'-'+m[3].padStart(2,'0');
+ if(m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+ if(m=v.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/))return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+ const d=new Date(v);return isNaN(d)?null:iso(d)}
+function toRows(tab){const h=tab[0].map(x=>x.trim().toLowerCase()),C=CONFIG.COLUMNS;
+ const ix=v=>{const f=[].concat(v).map(n=>h.indexOf(n.trim().toLowerCase())).filter(i=>i>=0)[0];return f===undefined?-1:f};
+ const di=ix(C.date),ri=ix(C.rm),ti=ix(C.tl),ni=ix(C.rsvp);
+ if(di<0||ri<0||ti<0)throw new Error('Columns not found. Need: '+[C.date,C.rm,C.tl].map(x=>[].concat(x)[0]).join(', '));
+ const F=CONFIG.FILTER,fi=F?ix(F.column):-1;if(F&&fi<0)throw new Error('Filter column not found: '+F.column);
+ const fv=F?F.values.map(v=>v.trim().toLowerCase()):[];
+ const nm=v=>{v=(v||'').trim();if(!CONFIG.CLEAN_NAMES)return v;return v.replace(/^(mr|mrs|ms|miss|dr|shri|smt)\.?\s+/i,'').replace(/\s+/g,' ').toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase())};
+ return tab.slice(1).filter(r=>!F||fv.includes((r[fi]||'').trim().toLowerCase()))
+  .map(r=>({date:normDate(r[di]),rm:nm(r[ri]),tl:nm(r[ti]),n:ni<0?1:(parseFloat(r[ni])||0)})).filter(r=>r.date&&r.rm)}
+
+function demo(){const tls={'Amandeep':['Neha Arora','Rohan Mehta','Isha Verma','Karan Malik','Pooja Rana'],'Ashwani Tiwari':['Sahil Kapoor','Divya Nair','Manav Bedi','Ritu Saini'],
+ 'Rohit Jaiswal':['Aman Chopra','Kriti Joshi','Varun Bhatia','Sonal Gill','Dev Anand'],'Sumeet Anand':['Tanya Sethi','Harsh Vora','Meera Iyer','Arjun Dutta','Naina Roy','Kabir Sood'],'Prakash Shadija':['Lavina Das','Yash Kohli','Mitali Rao','Gaurav Sen']};
+ const out=[];let s=7;const rnd=()=>(s=(s*9301+49297)%233280)/233280;
+ for(let d=2;d>=0;d--){const dt=new Date();dt.setDate(dt.getDate()-d);
+  Object.entries(tls).forEach(([tl,l])=>l.forEach((rm,i)=>{const n=Math.floor(rnd()*(d===0?3:5));out.push({date:iso(dt),rm,tl,n})}))}
+ return out}
+
+function sheetRef(){const src=CONFIG.SHEET_URL.trim();const m=src.match(/\/spreadsheets\/d\/([\w-]+)/);
+ if(!m||/output=csv/.test(src))return null;const g=src.match(/[#&?]gid=(\d+)/);return {id:m[1],tab:CONFIG.SHEET_TAB,gid:g?g[1]:''}}
+// Loads the sheet through a <script> tag (JSONP). Unlike fetch(), the browser does not block this across sites.
+function jsonpLoad(r){return new Promise((res,rej)=>{const cb='__gv'+Date.now();const s=document.createElement('script');
+ const done=()=>{clearTimeout(t);delete window[cb];s.remove()};const t=setTimeout(()=>{done();rej(new Error('timed out'))},20000);
+ window[cb]=d=>{done();d&&d.status==='ok'?res(d.table):rej(new Error((d&&d.errors&&d.errors[0]&&d.errors[0].detailed_message)||'Google returned an error'))};
+ s.onload=()=>{if(window[cb]){done();rej(new Error('Sheet is not shared. Set sharing to "Anyone with the link: Viewer"'))}};
+ s.onerror=()=>{done();rej(new Error('blocked or no internet'))};
+ s.src='https://docs.google.com/spreadsheets/d/'+r.id+'/gviz/tq?tqx=out:json;responseHandler:'+cb+'&headers=1'+(r.tab?'&sheet='+encodeURIComponent(r.tab):r.gid?'&gid='+r.gid:'')+'&t='+Date.now();
+ document.head.appendChild(s)})}
+function tableToTab(t){const cell=c=>c==null?'':String(c.f!=null?c.f:(c.v==null?'':c.v));
+ const body=t.rows.map(row=>t.cols.map((_,i)=>cell(row.c[i]))),lab=t.cols.map(c=>(c.label||'').trim());
+ return lab.some(x=>x)?[lab].concat(body):body}
+async function fetchCsv(u){const res=await fetch(u+(u.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
+ if(!res.ok)throw new Error('Sheet returned '+res.status);const txt=await res.text();
+ if(/^\s*</.test(txt))throw new Error('Sheet is not shared. Set sharing to "Anyone with the link: Viewer"');return parseCSV(txt)}
+
+async function load(){
+ try{
+  const base=csvUrl(),r=sheetRef();
+  if(!base){rows=demo();lastOk=new Date();$('#warn').style.display='none';render();return}
+  let tab;
+  if(r){try{tab=tableToTab(await jsonpLoad(r))}catch(e1){try{tab=await fetchCsv(base)}catch(e2){throw new Error(e1.message)}}}
+  else tab=await fetchCsv(base);
+  rows=toRows(tab);lastOk=new Date();
+  const latest=rows.reduce((a,r)=>r.date>a?r.date:a,'');
+  diag={read:Math.max(0,tab.length-1),counted:rows.length,latest:latest||'none',heads:tab[0].join(' | ')};
+  const w=$('#warn');
+  if(!rows.length){w.textContent='Connected, but 0 RSVPs counted. Rows read: '+diag.read+'. Headers seen: '+diag.heads+'. Check that Stage says "Meeting Scheduled" and dates look like 27 Oct 2026.';w.style.display='block'}
+  else w.style.display='none';
+ }catch(e){const w=$('#warn');let snap=false;
+  if(!rows.length&&CONFIG.SNAPSHOT){try{rows=toRows(parseCSV(CONFIG.SNAPSHOT));snap=true;diag={read:rows.length,counted:rows.length,latest:rows.reduce((a,r)=>r.date>a?r.date:a,''),snap:true}}catch(_){}}
+  w.textContent=snap?'Cannot reach the live Google Sheet, so this is a SAVED COPY, not live data. ('+e.message+')':'Could not refresh from Google Sheet. Showing last data. ('+e.message+')';w.style.display='block'}
+ render()}
+
+function render(){
+ const T=CONFIG.TARGET_PER_RM,today=viewDay||iso(new Date());
+ const start=CONFIG.START_DATE||rows.reduce((a,r)=>!a||r.date<a?r.date:a,'')||today;
+ const m={};CONFIG.ROSTER.forEach(r=>m[r.rm]={rm:r.rm,tl:r.tl,total:0,today:0});
+ rows.forEach(r=>{if(r.date<start||r.date>today)return;const o=m[r.rm]=m[r.rm]||{rm:r.rm,tl:r.tl,total:0,today:0};o.tl=r.tl||o.tl;o.total+=r.n;if(r.date===today)o.today+=r.n});
+ const rms=Object.values(m).sort((a,b)=>b.total-a.total||b.today-a.today||a.rm.localeCompare(b.rm));
+ let prev=null,rank=0;rms.forEach((r,i)=>{if(r.total!==prev){rank=i+1;prev=r.total}r.rank=rank});
+ const total=rms.reduce((a,r)=>a+r.total,0),tToday=rms.reduce((a,r)=>a+r.today,0),N=rms.length;
+ const days=Math.max(1,Math.round((new Date(today)-new Date(start))/864e5)+1);
+ const sd=new Date(start+'T00:00:00');
+ const dsel=$('#day'),dl=[...new Set(rows.map(r=>r.date))].sort().reverse().slice(0,14);
+ dsel.innerHTML='<option value="">Today (live)</option>'+dl.map(d=>'<option value="'+d+'">'+new Date(d+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+'</option>').join('');
+ dsel.value=viewDay||'';
+ $('#total').textContent=total;
+ $('#since').innerHTML='since '+sd.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+'<br>'+days+' day'+(days>1?'s':'')+' - all teams';
+ // team data
+ const tm={},G=x=>tm[x]=tm[x]||{tl:x,rsvp:0,rm:{}};
+ CONFIG.ROSTER.forEach(r=>{G(r.tl).rm[r.rm]=G(r.tl).rm[r.rm]||0});
+ rows.forEach(r=>{if(r.date<start||r.date>today)return;const t=G(r.tl);t.rm[r.rm]=t.rm[r.rm]||0;if(r.date===today){t.rsvp+=r.n;t.rm[r.rm]+=r.n}});
+ Object.values(tm).forEach(t=>{t.n=Object.keys(t.rm).length;t.on=Object.values(t.rm).filter(v=>v>=T).length});
+ const tl=Object.values(tm).map(t=>({...t,tgt:t.n*T,pct:t.n?Math.round(t.rsvp/(t.n*T)*100):0})).sort((a,b)=>b.pct-a.pct||b.rsvp-a.rsvp);
+ const on=rms.filter(r=>r.today>=T).length,tgt=N*T,pct=tgt?Math.round(tToday/tgt*100):0;
+ const best=[...rms].sort((a,b)=>b.today-a.today)[0],zero=rms.filter(r=>r.today===0),bt=tl[0],top=rms[0];
+ $('#toprm').textContent=top&&top.total?top.rm:'-';$('#toprmsub').textContent=top&&top.total?top.total+' RSVP - Team '+top.tl:'';
+ $('#kpis').innerHTML=
+ `<div class="card"><h3>TOTAL RSVP TODAY</h3><div class="big">${tToday}</div><div class="note">of ${tgt} target - ${pct}% - ${on}/${N} RMs on target</div><div class="bar"><i style="width:${Math.min(100,pct)}%"></i></div></div>`+
+ `<div class="card"><h3>HIGHEST RSVP TODAY</h3>${best&&best.today>0?`<div class="nm">${esc(best.rm)}</div><div class="note">${best.today} RSVP - Team ${esc(best.tl)}</div>`:`<div class="nm">-</div><div class="note">No RSVPs yet today</div>`}</div>`+
+ `<div class="card push"><h3>LOWEST RSVP - NEEDS PUSH</h3><div class="nm">${zero.length} RM${zero.length===1?'':'s'} on 0</div><div class="note">Each ${T} short of target today</div><div class="names">${zero.slice(0,24).map(r=>esc(r.rm)+'<br>').join('')}</div></div>`+
+ `<div class="card"><h3>BEST TL TODAY</h3>${bt?`<div class="nm">${esc(bt.tl)}</div><div class="note">${bt.pct}% of target - ${bt.rsvp}/${bt.tgt} RSVP - ${bt.on}/${bt.n} RMs on target</div>`:''}</div>`;
+ // leaderboard
+ const per=Math.ceil(N/2),mx=Math.max(1,top?top.total:1),el=$('#rows');
+ el.style.gridTemplateRows=`repeat(${per},1fr)`;
+ el.innerHTML=rms.map(r=>`<div class="r ${r.rank<=3&&r.total>0?'gold':''}"><span class="k">${r.rank}</span><span class="n">${esc(r.rm)}<small>${esc(r.tl)}</small></span><span class="b"><i style="width:${r.total/mx*100}%"></i></span><span class="t ${r.today?'up':''}">${r.today?'+'+r.today+' today':'0 today'}</span><span class="v">${r.total}</span></div>`).join('');
+ $('#lbn').textContent='Total RSVP till now: '+total+' - '+N+' RMs';
+ // TL standings
+ $('#tls').innerHTML=tl.map(t=>`<div class="t1"><div class="h"><b>${esc(t.tl)}</b><em class="${t.pct>=100?'pos':t.pct>=50?'':'neg'}">${t.pct}%</em></div><div class="bar"><i style="width:${Math.min(100,t.pct)}%"></i></div><div class="s"><span>${t.rsvp}/${t.tgt} RSVP - ${t.n} RMs</span><span>Avg ${(t.rsvp/t.n).toFixed(1)} - gap ${Math.max(0,t.tgt-t.rsvp)}</span></div></div>`).join('');
+ tick()}
+
+function tick(){const n=new Date();
+ $('#clock').textContent=n.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}).toLowerCase();
+ const mm=String(Math.floor(left/60)).padStart(2,'0'),ss=String(left%60).padStart(2,'0');
+ $('#stat').innerHTML='<span><i class="dot"></i><b>'+(diag&&diag.snap?'Saved copy (not live)':CONFIG.SHEET_URL?'From Google Sheet':'Demo data')+' - updates every '+CONFIG.REFRESH_MIN+' min</b></span><span>Last updated '+(lastOk?lastOk.toLocaleTimeString('en-IN'):'-')+'</span><span>Next auto refresh in '+mm+':'+ss+'</span><span>Daily target '+CONFIG.TARGET_PER_RM+' RSVP per RM</span>'+(diag?'<span>Rows read '+diag.read+' - counted '+diag.counted+' - latest '+diag.latest+'</span>':'');}
+setInterval(()=>{left--;if(left<=0){left=CONFIG.REFRESH_MIN*60;load()}else tick()},1000);
+$('#rf').onclick=()=>{left=CONFIG.REFRESH_MIN*60;load()};
+$('#fs').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
+$('#day').onchange=e=>{viewDay=e.target.value||null;render()};
+load();
+</script>
+</body>
+</html>
